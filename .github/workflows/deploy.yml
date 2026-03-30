@@ -17,10 +17,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
+
             cd ~/online_chess
             git pull origin main
 
-            cd back-end
+            cd ~/online_chess/front-end
+            npm install
+            npm run build
+            sudo rm -rf /var/www/chess/*
+            sudo cp -r build/* /var/www/chess/
+            sudo systemctl reload nginx
+
+            cd ~/online_chess/back-end
             source venv/bin/activate
             pip install -r requirements.txt
 
@@ -28,4 +37,3 @@ jobs:
             make -j4 build ARCH=x86-64-sse41-popcnt || true
 
             sudo systemctl restart chess
-            sudo systemctl reload nginx
