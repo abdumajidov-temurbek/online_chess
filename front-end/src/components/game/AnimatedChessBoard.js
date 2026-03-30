@@ -41,6 +41,11 @@ function pieceColor(piece) {
   return piece[0] === 'w' ? 'white' : 'black';
 }
 
+function findKingSquare(pieces, color) {
+  const targetPiece = color === 'white' ? 'wK' : 'bK';
+  return Object.entries(pieces).find(([, piece]) => piece === targetPiece)?.[0] || '';
+}
+
 function squareToPosition(square, orientation) {
   const fileIndex = FILES.indexOf(square[0]);
   const rankIndex = RANKS.indexOf(square[1]);
@@ -122,6 +127,7 @@ const Square = memo(function Square({
   isSelected,
   isLastMove,
   isMoveTarget,
+  isCheckmateSquare,
   onHover,
   onSquareClick,
   onPiecePointerDown,
@@ -142,6 +148,7 @@ const Square = memo(function Square({
         isHovered ? 'acb-square-hovered' : '',
         isSelected ? 'acb-square-selected' : '',
         isLastMove ? 'acb-square-last-move' : '',
+        isCheckmateSquare ? 'acb-square-checkmate' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -178,6 +185,7 @@ export default function AnimatedChessBoard({
   selectedSquare,
   possibleMoves,
   lastMoveUci,
+  checkmateColor,
   disabled,
   onSquareClick,
   onMove,
@@ -188,6 +196,7 @@ export default function AnimatedChessBoard({
   const [dragState, setDragState] = useState(null);
   const [animationState, setAnimationState] = useState(null);
   const pieces = useMemo(() => parseFenPieces(fen), [fen]);
+  const checkmateSquare = useMemo(() => findKingSquare(pieces, checkmateColor), [pieces, checkmateColor]);
 
   useEffect(() => {
     if (previousFenRef.current === fen) {
@@ -324,7 +333,12 @@ export default function AnimatedChessBoard({
 
   return (
     <div className="acb-shell">
-      <div ref={boardRef} className="acb-board" role="grid" aria-label="Chess board">
+      <div
+        ref={boardRef}
+        className={`acb-board ${checkmateSquare ? 'acb-board-checkmate' : ''}`}
+        role="grid"
+        aria-label="Chess board"
+      >
         {squares.map((square) => {
           const piece = pieces[square];
           const interactive = playerCanInteract && pieceColor(piece) === playerColor;
@@ -341,12 +355,20 @@ export default function AnimatedChessBoard({
               isSelected={selectedSquare === square}
               isLastMove={square === lastMoveFrom || square === lastMoveTo}
               isMoveTarget={possibleMoves.includes(square)}
+              isCheckmateSquare={square === checkmateSquare}
               onHover={setHoveredSquare}
               onSquareClick={onSquareClick}
               onPiecePointerDown={handlePiecePointerDown}
             />
           );
         })}
+
+        {checkmateSquare ? (
+          <div className="acb-checkmate-overlay" style={squareToPosition(checkmateSquare, orientation)} aria-hidden="true">
+            <span className="acb-checkmate-badge">Checkmate</span>
+            <span className="acb-checkmate-marker">!</span>
+          </div>
+        ) : null}
 
         {animationState?.primary ? (
           <div
