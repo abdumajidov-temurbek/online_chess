@@ -92,9 +92,11 @@ a {
 .hero-layout,
 .game-layout {
   display: grid;
-  grid-template-columns: minmax(680px, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 28px;
   padding: 0 clamp(20px, 4vw, 40px) 40px;
+  width: min(1480px, 100%);
+  margin: 0 auto;
 }
 
 .hero-copy,
@@ -274,12 +276,15 @@ a {
 .arena-column {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
 .arena-board-card {
-  padding: 20px;
-  border-radius: 32px;
-  background: linear-gradient(180deg, rgba(31, 34, 40, 0.96), rgba(20, 23, 28, 0.96));
+  padding: clamp(18px, 2vw, 24px);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top, rgba(125, 150, 103, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(31, 34, 40, 0.96), rgba(20, 23, 28, 0.98));
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
 }
@@ -287,6 +292,8 @@ a {
 .board-wrap {
   display: grid;
   justify-content: center;
+  width: min(100%, clamp(640px, 66vw, 860px));
+  margin: 0 auto;
 }
 
 .board-footnote {
@@ -357,6 +364,8 @@ a {
   display: grid;
   gap: 16px;
   align-self: start;
+  position: sticky;
+  top: 20px;
 }
 
 .sidebar-panel {
@@ -514,6 +523,14 @@ a {
   .hero-layout,
   .game-layout {
     grid-template-columns: 1fr;
+  }
+
+  .bot-sidebar {
+    position: static;
+  }
+
+  .board-wrap {
+    width: min(100%, 92vw);
   }
 }
 

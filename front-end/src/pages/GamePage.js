@@ -1,22 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Chess from 'chess.js';
-import Chessboard from 'chessboardjsx';
 import { Link, useHistory, useParams } from 'react-router-dom';
 
+import AnimatedChessBoard from '../components/game/AnimatedChessBoard';
 import BotSidebar from '../components/game/BotSidebar';
 import PlayerCard from '../components/game/PlayerCard';
 import api from '../lib/api';
-
-const pieceTheme = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'].reduce((map, piece) => {
-  map[piece] = ({ squareWidth }) => (
-    <img
-      src={`${process.env.PUBLIC_URL}/chess-themes/pieces/neo/${piece.toLowerCase()}.png`}
-      alt={piece}
-      style={{ width: squareWidth, height: squareWidth, pointerEvents: 'none' }}
-    />
-  );
-  return map;
-}, {});
 
 function outcomeLabel(game) {
   if (!game.result) {
@@ -53,7 +42,7 @@ export default function GamePage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedSquare, setSelectedSquare] = useState('');
-  const [squareStyles, setSquareStyles] = useState({});
+  const [possibleMoves, setPossibleMoves] = useState([]);
 
   useEffect(() => {
     const loadGame = async () => {
@@ -94,42 +83,21 @@ export default function GamePage() {
   }, [game]);
 
   const lastMove = game?.moves?.[game.moves.length - 1]?.uci || '';
-  const boardHighlights = useMemo(() => {
-    const styles = { ...squareStyles };
-    if (lastMove) {
-      styles[lastMove.slice(0, 2)] = {
-        ...(styles[lastMove.slice(0, 2)] || {}),
-        boxShadow: 'inset 0 0 0 9999px rgba(238, 198, 92, 0.24)',
-      };
-      styles[lastMove.slice(2, 4)] = {
-        ...(styles[lastMove.slice(2, 4)] || {}),
-        boxShadow: 'inset 0 0 0 9999px rgba(238, 198, 92, 0.24)',
-      };
-    }
-    return styles;
-  }, [lastMove, squareStyles]);
 
   const highlightMoves = (square) => {
     const moves = board.moves({ square, verbose: true });
     if (!moves.length) {
       setSelectedSquare('');
-      setSquareStyles({});
+      setPossibleMoves([]);
       return;
     }
-    const nextStyles = moves.reduce(
-      (styles, move) => ({
-        ...styles,
-        [move.to]: { boxShadow: 'inset 0 0 0 9999px rgba(238, 198, 92, 0.18)' },
-      }),
-      { [square]: { boxShadow: 'inset 0 0 0 9999px rgba(238, 198, 92, 0.26)' } }
-    );
     setSelectedSquare(square);
-    setSquareStyles(nextStyles);
+    setPossibleMoves(moves.map((move) => move.to));
   };
 
   const clearHighlights = () => {
     setSelectedSquare('');
-    setSquareStyles({});
+    setPossibleMoves([]);
   };
 
   const submitMove = async (sourceSquare, targetSquare) => {
@@ -158,10 +126,18 @@ export default function GamePage() {
   };
 
   const handleSquareClick = (square) => {
-    if (game?.botThinking) {
+    if (!game || game.botThinking || busy || game.isFinished || game.turn !== game.playerColor) {
       return;
     }
     if (!selectedSquare) {
+      highlightMoves(square);
+      return;
+    }
+    if (square === selectedSquare) {
+      clearHighlights();
+      return;
+    }
+    if (!possibleMoves.includes(square)) {
       highlightMoves(square);
       return;
     }
@@ -245,24 +221,16 @@ export default function GamePage() {
 
           <div className="arena-board-card">
             <div className="board-wrap">
-              <Chessboard
-                id="castle-solo-board"
-                width={Math.min(window.innerWidth < 900 ? window.innerWidth - 48 : 720, 720)}
-                position={game.fen}
+              <AnimatedChessBoard
+                fen={game.fen}
                 orientation={game.playerColor}
-                pieces={pieceTheme}
-                boardStyle={{ borderRadius: '22px', overflow: 'hidden', boxShadow: '0 32px 90px rgba(0, 0, 0, 0.38)' }}
-                lightSquareStyle={{ backgroundColor: '#ede5cd' }}
-                darkSquareStyle={{ backgroundColor: '#7f9a68' }}
-                squareStyles={boardHighlights}
+                playerColor={game.playerColor}
+                selectedSquare={selectedSquare}
+                possibleMoves={possibleMoves}
+                lastMoveUci={lastMove}
+                disabled={game.botThinking || busy || game.isFinished}
                 onSquareClick={handleSquareClick}
-                onDrop={({ sourceSquare, targetSquare }) => {
-                  if (game.botThinking) {
-                    return;
-                  }
-                  submitMove(sourceSquare, targetSquare);
-                }}
-                showNotation
+                onMove={submitMove}
               />
             </div>
             <div className="board-footnote">
