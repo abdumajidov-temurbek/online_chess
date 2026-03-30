@@ -1,4 +1,3 @@
-from stockfish import Stockfish
 import chess
 import chess.pgn
 import io
@@ -9,6 +8,8 @@ import pickle
 from minimax.search import search
 from ml.filter import filter_good_moves
 import time
+from stockfish_config import engine_parameters, resolve_stockfish_path
+from uci_engine import UciEngine
 
 
 class Engine:
@@ -16,16 +17,23 @@ class Engine:
     def __init__(self):
         self.stockfish = None
         if platform == 'linux' or platform == 'linux2':
-            self.stockfish = Stockfish('./stockfish/stockfish_14_x64')
+            self.stockfish = UciEngine(
+                path=resolve_stockfish_path(),
+                parameters=engine_parameters(),
+                move_time_ms=250,
+            )
         elif platform == 'darwin':
-            self.stockfish = Stockfish()
+            self.stockfish = UciEngine(
+                path=resolve_stockfish_path(),
+                parameters=engine_parameters(),
+                move_time_ms=250,
+            )
 
         with open('./ml/trained_model/dumped_clf.pkl', 'rb') as fid:
             self.classifier = pickle.load(fid)
 
     def get_stockfish_best_move(self, board):
-        self.stockfish.set_fen_position(board.fen())
-        return self.stockfish.get_best_move()
+        return self.stockfish.best_move(board)
 
     def get_random_move(self, board):
         legal_moves = [str(move) for move in board.legal_moves]

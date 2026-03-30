@@ -1,14 +1,22 @@
-# Use the official Python image as the base image
-FROM python:3.8
+FROM python:3.12-slim
 
-# Set the working directory in the container
-WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Copy the application files into the working directory
-COPY . /app
+WORKDIR /app/back-end
 
-# Install the application dependencies
-RUN pip install -r requirements.txt
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential make \
+    && rm -rf /var/lib/apt/lists/*
 
-# Define the entry point for the container
-CMD ["python", "server.py"]
+COPY back-end/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY back-end /app/back-end
+COPY fish17 /app/fish17
+
+RUN make -C /app/fish17/Stockfish/src -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
+
+ENV STOCKFISH_PATH=/app/fish17/Stockfish/src/stockfish
+
+CMD ["gunicorn", "castle_backend.wsgi:application", "--bind", "0.0.0.0:5000"]

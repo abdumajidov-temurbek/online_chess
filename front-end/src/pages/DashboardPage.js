@@ -94,7 +94,7 @@ export default function DashboardPage() {
           <p>Launch a polished training game or open a live room for another player.</p>
           <div className="action-list">
             <button type="button" className="primary-button" disabled={loadingAction === '/games/bot'} onClick={() => createGame('/games/bot')}>
-              {loadingAction === '/games/bot' ? 'Starting bot...' : 'Play Stockfish 1500'}
+              {loadingAction === '/games/bot' ? 'Starting bot...' : 'Play Stockfish 17'}
             </button>
             <button
               type="button"

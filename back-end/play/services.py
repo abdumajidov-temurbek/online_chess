@@ -7,8 +7,8 @@ from typing import Dict, List, Optional
 
 import chess
 import chess.pgn
-from django.conf import settings
-from stockfish import Stockfish
+from stockfish_config import engine_parameters, resolve_stockfish_path, stockfish_display_name
+from uci_engine import UciEngine
 
 
 def status_text(board: chess.Board) -> str:
@@ -64,27 +64,23 @@ class GameSession:
 
 class StockfishBot:
     def __init__(self) -> None:
-        self._engine: Optional[Stockfish] = None
+        self._engine: Optional[UciEngine] = None
         self._load()
 
     def _load(self) -> None:
-        path = os.getenv("STOCKFISH_PATH", str(settings.BASE_DIR / "stockfish" / "stockfish_14_x64"))
+        path = resolve_stockfish_path(os.getenv("STOCKFISH_PATH"))
         try:
-            self._engine = Stockfish(path=path)
-            self._engine.update_engine_parameters(
-                {
-                    "UCI_LimitStrength": "true",
-                    "UCI_Elo": int(os.getenv("STOCKFISH_ELO", "1500")),
-                    "Skill Level": int(os.getenv("STOCKFISH_SKILL_LEVEL", "8")),
-                }
+            self._engine = UciEngine(
+                path=path,
+                parameters=engine_parameters(),
+                move_time_ms=int(os.getenv("STOCKFISH_MOVE_TIME_MS", "250")),
             )
         except Exception:
             self._engine = None
 
     def choose_move(self, board: chess.Board) -> str:
         if self._engine:
-            self._engine.set_fen_position(board.fen())
-            move = self._engine.get_best_move_time(int(os.getenv("STOCKFISH_MOVE_TIME_MS", "250")))
+            move = self._engine.best_move(board, int(os.getenv("STOCKFISH_MOVE_TIME_MS", "250")))
             if move:
                 return move
         return str(next(iter(board.legal_moves)))
@@ -231,7 +227,7 @@ def serialize_game(game: GameSession) -> Dict[str, object]:
         "id": game.id,
         "playerName": game.player_name,
         "playerColor": game.player_color,
-        "botName": "Stockfish 1500",
+        "botName": stockfish_display_name(),
         "botColor": game.bot_color,
         "fen": game.board.fen(),
         "turn": turn,

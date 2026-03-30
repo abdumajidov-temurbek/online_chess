@@ -49,13 +49,13 @@ export default function LandingPage() {
           <h1>Press play, choose your side, and start a real chess game immediately.</h1>
           <p>
             This version strips away authentication and lobby noise. You land, enter your name, pick white or black,
-            and the game begins against a Stockfish-powered opponent tuned near 1500 strength.
+            and the game begins against a Stockfish-powered opponent running a full-strength Stockfish 17 build.
           </p>
           <div className="hero-actions">
             <button type="button" className="primary-button" onClick={() => setOpen(true)}>
               Play
             </button>
-            <div className="pill-note">Stockfish 1500 • Local-friendly • Immediate start</div>
+            <div className="pill-note">Stockfish 17 • Strong engine • Immediate start</div>
           </div>
         </section>
 

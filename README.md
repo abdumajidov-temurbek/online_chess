@@ -6,7 +6,7 @@ A full-stack chess application where users can play against an AI-powered oppone
 
 ## 🚀 Features
 
-* ♟ Play chess against AI (Stockfish engine)
+* ♟ Play chess against AI (Stockfish 17 engine)
 * 🧠 Custom Minimax algorithm support
 * 🔁 Restart and resign game
 * 📡 REST API for game management
@@ -56,6 +56,7 @@ cd online-chess
 ### 2. Run Backend
 
 ```
+make -C fish17/Stockfish/src -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
 cd back-end
 python3 -m venv venv
 source venv/bin/activate
@@ -105,7 +106,7 @@ POST   /api/games/<game_id>/resign
 
 ## 🧠 AI Engine
 
-* Uses Stockfish for strong chess calculations
+* Uses Stockfish 17 for strong chess calculations
 * Supports custom Minimax implementation
 * Can be extended with ML models
 
@@ -113,16 +114,35 @@ POST   /api/games/<game_id>/resign
 
 ## ⚠️ Notes
 
-* Make sure Stockfish binary is executable:
+* The backend now expects Stockfish 17 at:
 
 ```
-chmod +x stockfish/stockfish
+fish17/Stockfish/src/stockfish
+```
+
+* Default backend environment variables live in `back-end/.env`:
+
+```
+STOCKFISH_PATH=../fish17/Stockfish/src/stockfish
+STOCKFISH_ELO=3000
+STOCKFISH_LIMIT_STRENGTH=false
+STOCKFISH_SKILL_LEVEL=20
+STOCKFISH_THREADS=2
+STOCKFISH_HASH_MB=64
+STOCKFISH_MOVE_TIME_MS=250
+BOT_MOVE_DELAY_MS=2800
 ```
 
 * If port 5500 is busy, change it:
 
 ```
 python manage.py runserver 8000
+```
+
+* For production, use Gunicorn from `back-end/Procfile` and build Docker from the repository root so the `fish17` directory is included:
+
+```
+docker build -f back-end/Dockerfile .
 ```
 
 ---
@@ -152,4 +172,3 @@ This project was built to practice:
 Temur — software engineer
 
 ---
-

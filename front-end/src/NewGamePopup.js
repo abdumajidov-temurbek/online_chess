@@ -71,7 +71,7 @@ function NewGamePopup() {
 							<Form.Field>
 								<Checkbox
 									radio
-									label='Stockfish 14'
+									label='Stockfish 17'
 									name='checkboxRadioGroup'
 									value='stockfish'
 									checked={ai === 'stockfish'}

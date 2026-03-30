@@ -9,6 +9,7 @@ import chess.pgn
 from .database import get_db
 from .engine_service import engine_service
 from .security import to_iso, utc_now
+from stockfish_config import stockfish_display_name
 
 
 class GameError(Exception):
@@ -101,10 +102,10 @@ class GameManager:
             id=self._new_id(),
             mode="bot",
             white=Player(user_id=user_id, name=name),
-            black=Player(user_id=None, name="Stockfish 1500"),
+            black=Player(user_id=None, name=stockfish_display_name()),
             status="ongoing",
             bot_side="black",
-            bot_name="Stockfish 1500",
+            bot_name=stockfish_display_name(),
         )
         self.games[game.id] = game
         return _game_to_dict(game)

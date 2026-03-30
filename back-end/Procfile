@@ -1,2 +1,1 @@
-web: python server.py
-worker: python server.py
+web: gunicorn castle_backend.wsgi:application --bind 0.0.0.0:${PORT:-5000}

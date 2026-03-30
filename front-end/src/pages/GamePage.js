@@ -237,8 +237,8 @@ export default function GamePage() {
           <PlayerCard
             label="Opponent"
             name={game.botName}
-            rating={1500}
-            subtitle="Stockfish tuned for balanced rapid play"
+            rating={3000}
+            subtitle="Stockfish 17 running at full strength"
             active={botActive}
             accent="bot"
           />

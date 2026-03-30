@@ -1,6 +1,8 @@
 import os
 from dataclasses import dataclass
 
+from stockfish_config import resolve_stockfish_path
+
 
 @dataclass
 class Settings:
@@ -16,8 +18,8 @@ class Settings:
     reset_token_ttl_seconds: int = int(os.getenv("RESET_TOKEN_TTL_SECONDS", str(60 * 30)))
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
     database_path: str = os.getenv("DATABASE_PATH", "./castle.sqlite3")
-    stockfish_path: str = os.getenv("STOCKFISH_PATH", "./stockfish/stockfish_14_x64")
-    stockfish_elo: int = int(os.getenv("STOCKFISH_ELO", "1500"))
+    stockfish_path: str = resolve_stockfish_path(os.getenv("STOCKFISH_PATH"))
+    stockfish_elo: int = int(os.getenv("STOCKFISH_ELO", "3000"))
     stockfish_move_time_ms: int = int(os.getenv("STOCKFISH_MOVE_TIME_MS", "250"))
     secure_cookies: bool = os.getenv("SECURE_COOKIES", "false").lower() == "true"
     reset_url_base: str = os.getenv("RESET_URL_BASE", "http://localhost:3000/reset-password")
