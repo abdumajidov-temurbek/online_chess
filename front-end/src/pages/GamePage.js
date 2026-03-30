@@ -5,6 +5,7 @@ import { Link, useHistory, useParams } from 'react-router-dom';
 import AnimatedChessBoard from '../components/game/AnimatedChessBoard';
 import BotSidebar from '../components/game/BotSidebar';
 import PlayerCard from '../components/game/PlayerCard';
+import useChessSounds from '../hooks/useChessSounds';
 import api from '../lib/api';
 
 function outcomeLabel(game) {
@@ -73,6 +74,8 @@ export default function GamePage() {
 
     return () => window.clearInterval(intervalId);
   }, [game?.botThinking, gameId]);
+
+  useChessSounds(game);
 
   const board = useMemo(() => {
     const instance = new Chess();
@@ -213,8 +216,8 @@ export default function GamePage() {
           <PlayerCard
             label="Opponent"
             name={game.botName}
-            rating={3000}
-            subtitle="Stockfish 17 running at full strength"
+            rating={game.difficultyElo || 1000}
+            subtitle={`${game.difficultyLabel || 'Beginner'} training level`}
             active={botActive}
             accent="bot"
           />
@@ -253,6 +256,8 @@ export default function GamePage() {
 
         <BotSidebar
           botName={game.botName}
+          difficultyLabel={game.difficultyLabel}
+          difficultyElo={game.difficultyElo}
           openingName={openingName(game.moves)}
           statusText={statusMessage}
           moves={game.moves}

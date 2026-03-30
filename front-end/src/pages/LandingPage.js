@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import api from '../lib/api';
+import { BOT_DIFFICULTIES } from '../lib/botDifficulty';
 
 export default function LandingPage() {
   const history = useHistory();
   const [open, setOpen] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerColor, setPlayerColor] = useState('white');
+  const [difficulty, setDifficulty] = useState('beginner');
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ export default function LandingPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await api.post('/games', { playerName, playerColor });
+      const response = await api.post('/games', { playerName, playerColor, difficulty });
       history.push(`/game/${response.data.game.id}`);
     } catch (requestError) {
       setError(requestError.response?.data?.error || 'Unable to start a game.');
@@ -134,6 +136,28 @@ export default function LandingPage() {
                     <strong>Play as Black</strong>
                     <span>Bot opens instantly.</span>
                   </button>
+                </div>
+                <div className="difficulty-block">
+                  <div className="difficulty-header">
+                    <div>
+                      <strong>Bot difficulty</strong>
+                      <span>Friendly labels with tuned engine strength behind them.</span>
+                    </div>
+                  </div>
+                  <div className="difficulty-grid">
+                    {BOT_DIFFICULTIES.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`difficulty-card ${difficulty === option.value ? 'difficulty-card-active' : ''}`}
+                        onClick={() => setDifficulty(option.value)}
+                      >
+                        <strong>{option.label}</strong>
+                        <span>{option.description}</span>
+                        <small>Approx. {option.elo} Elo</small>
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {error ? <p className="error-copy">{error}</p> : null}
                 <div className="dialog-actions">

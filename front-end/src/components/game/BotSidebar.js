@@ -14,6 +14,8 @@ function groupMoves(moves) {
 
 export default function BotSidebar({
   botName,
+  difficultyLabel,
+  difficultyElo,
   openingName,
   statusText,
   moves,
@@ -34,12 +36,16 @@ export default function BotSidebar({
           <div className="bot-avatar">SF</div>
           <div>
             <h2>{botName}</h2>
-            <p>Adaptive rapid sparring partner tuned near 1500.</p>
+            <p>{difficultyLabel ? `${difficultyLabel} level tuned around ${difficultyElo} Elo.` : 'Adaptive rapid sparring partner.'}</p>
           </div>
         </div>
       </section>
 
       <section className="sidebar-panel sidebar-status">
+        <div className="status-block">
+          <span className="sidebar-label">Difficulty</span>
+          <strong>{difficultyLabel ? `${difficultyLabel} · ${difficultyElo} Elo` : 'Beginner · 1000 Elo'}</strong>
+        </div>
         <div className="status-block">
           <span className="sidebar-label">Opening</span>
           <strong>{openingName}</strong>
