@@ -30,24 +30,47 @@ def resolve_stockfish_path(raw_path: Optional[str] = None) -> str:
     return str(LEGACY_STOCKFISH_PATH.resolve())
 
 
-def engine_parameters() -> Dict[str, object]:
-    limit_strength = _env_bool("STOCKFISH_LIMIT_STRENGTH", False)
-    parameters: Dict[str, object] = {
+DIFFICULTY_LEVELS: Dict[str, Dict[str, object]] = {
+    "beginner": {"label": "Beginner", "elo": 1000, "skill": 4},
+    "pre-intermediate": {"label": "Pre-Intermediate", "elo": 1500, "skill": 8},
+    "intermediate": {"label": "Intermediate", "elo": 2200, "skill": 14},
+    "advanced": {"label": "Advanced", "elo": 3000, "skill": 20},
+}
+
+
+def normalize_difficulty(raw_value: Optional[str]) -> str:
+    normalized = (raw_value or "").strip().lower()
+    aliases = {
+        "pre_intermediate": "pre-intermediate",
+        "preintermediate": "pre-intermediate",
+    }
+    normalized = aliases.get(normalized, normalized)
+    return normalized if normalized in DIFFICULTY_LEVELS else "beginner"
+
+
+def difficulty_profile(raw_value: Optional[str]) -> Dict[str, object]:
+    key = normalize_difficulty(raw_value)
+    profile = DIFFICULTY_LEVELS[key]
+    return {
+        "key": key,
+        "label": profile["label"],
+        "elo": profile["elo"],
+        "skill": profile["skill"],
+    }
+
+
+def engine_parameters(raw_difficulty: Optional[str] = None) -> Dict[str, object]:
+    profile = difficulty_profile(raw_difficulty)
+    return {
         "Threads": max(int(os.getenv("STOCKFISH_THREADS", "2")), 1),
         "Hash": max(int(os.getenv("STOCKFISH_HASH_MB", "64")), 1),
-        "Skill Level": min(max(int(os.getenv("STOCKFISH_SKILL_LEVEL", "20")), 0), 20),
-        "UCI_LimitStrength": limit_strength,
+        "Skill Level": int(profile["skill"]),
+        "UCI_LimitStrength": True,
+        "UCI_Elo": int(profile["elo"]),
     }
-    if limit_strength:
-        parameters["UCI_Elo"] = max(int(os.getenv("STOCKFISH_ELO", "3000")), 1320)
-    return parameters
 
 
-def stockfish_display_name() -> str:
+def stockfish_display_name(raw_difficulty: Optional[str] = None) -> str:
+    profile = difficulty_profile(raw_difficulty)
     version = os.getenv("STOCKFISH_DISPLAY_NAME", "Stockfish 17")
-    skill = min(max(int(os.getenv("STOCKFISH_SKILL_LEVEL", "20")), 0), 20)
-    if _env_bool("STOCKFISH_LIMIT_STRENGTH", False):
-        return f"{version} ({os.getenv('STOCKFISH_ELO', '3000')} Elo)"
-    if skill == 20:
-        return f"{version} Max"
-    return f"{version} Skill {skill}"
+    return f"{version} • {profile['label']}"

@@ -22,11 +22,12 @@ def create_game(request):
     payload = _body(request)
     player_name = payload.get("playerName", "").strip()
     player_color = payload.get("playerColor", "").strip().lower()
+    difficulty = payload.get("difficulty", "")
     if not player_name:
         return JsonResponse({"error": "Player name is required."}, status=400)
 
     try:
-        game = game_manager.create_game(player_name=player_name, player_color=player_color)
+        game = game_manager.create_game(player_name=player_name, player_color=player_color, difficulty=difficulty)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 
