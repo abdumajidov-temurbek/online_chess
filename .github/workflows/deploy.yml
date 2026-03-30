@@ -1,0 +1,31 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: 16.171.38.41
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/online_chess
+            git pull origin main
+
+            cd back-end
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            cd ~/online_chess/fish17/Stockfish/src
+            make -j4 build ARCH=x86-64-sse41-popcnt || true
+
+            sudo systemctl restart chess
+            sudo systemctl reload nginx
