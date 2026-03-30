@@ -196,12 +196,16 @@ export default function GamePage() {
   const botActive = game.turn === game.botColor && !game.isFinished;
   const statusMessage = game.botThinking ? 'Bot is thinking...' : outcomeLabel(game);
   const checkmateColor =
-    game.reason === 'checkmate'
+    game.isFinished && game.reason === 'checkmate'
       ? game.winner === 'white'
         ? 'black'
         : game.winner === 'black'
           ? 'white'
           : ''
+      : '';
+  const checkColor =
+    !game.isFinished && game.inCheck
+      ? game.turn
       : '';
 
   return (
@@ -239,6 +243,7 @@ export default function GamePage() {
                 selectedSquare={selectedSquare}
                 possibleMoves={possibleMoves}
                 lastMoveUci={lastMove}
+                checkColor={checkColor}
                 checkmateColor={checkmateColor}
                 disabled={game.botThinking || busy || game.isFinished}
                 onSquareClick={handleSquareClick}

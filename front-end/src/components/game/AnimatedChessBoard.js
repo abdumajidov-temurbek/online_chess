@@ -127,6 +127,7 @@ const Square = memo(function Square({
   isSelected,
   isLastMove,
   isMoveTarget,
+  isCheckSquare,
   isCheckmateSquare,
   onHover,
   onSquareClick,
@@ -148,6 +149,7 @@ const Square = memo(function Square({
         isHovered ? 'acb-square-hovered' : '',
         isSelected ? 'acb-square-selected' : '',
         isLastMove ? 'acb-square-last-move' : '',
+        isCheckSquare ? 'acb-square-check' : '',
         isCheckmateSquare ? 'acb-square-checkmate' : '',
       ]
         .filter(Boolean)
@@ -185,6 +187,7 @@ export default function AnimatedChessBoard({
   selectedSquare,
   possibleMoves,
   lastMoveUci,
+  checkColor,
   checkmateColor,
   disabled,
   onSquareClick,
@@ -196,6 +199,7 @@ export default function AnimatedChessBoard({
   const [dragState, setDragState] = useState(null);
   const [animationState, setAnimationState] = useState(null);
   const pieces = useMemo(() => parseFenPieces(fen), [fen]);
+  const checkSquare = useMemo(() => findKingSquare(pieces, checkColor), [pieces, checkColor]);
   const checkmateSquare = useMemo(() => findKingSquare(pieces, checkmateColor), [pieces, checkmateColor]);
 
   useEffect(() => {
@@ -335,7 +339,7 @@ export default function AnimatedChessBoard({
     <div className="acb-shell">
       <div
         ref={boardRef}
-        className={`acb-board ${checkmateSquare ? 'acb-board-checkmate' : ''}`}
+        className={`acb-board ${checkSquare ? 'acb-board-check' : ''} ${checkmateSquare ? 'acb-board-checkmate' : ''}`}
         role="grid"
         aria-label="Chess board"
       >
@@ -355,6 +359,7 @@ export default function AnimatedChessBoard({
               isSelected={selectedSquare === square}
               isLastMove={square === lastMoveFrom || square === lastMoveTo}
               isMoveTarget={possibleMoves.includes(square)}
+              isCheckSquare={square === checkSquare && square !== checkmateSquare}
               isCheckmateSquare={square === checkmateSquare}
               onHover={setHoveredSquare}
               onSquareClick={onSquareClick}
