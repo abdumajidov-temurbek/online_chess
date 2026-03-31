@@ -1,0 +1,128 @@
+// Move history for undo functionality
+    private class MoveState
+    {
+        public char[,] boardState;
+        public bool wasEnPassantPossible;
+        public int lastEnPassantCol;
+        public int lastEnPassantRow;
+        public GameObject[,] piecesState;
+        public bool wasWhiteKingMoved;
+        public bool wasBlackKingMoved;
+        public bool wasWhiteLeftRookMoved;
+        public bool wasBlackLeftRookMoved;
+        public bool wasWhiteRightRookMoved;
+        public bool wasBlackRightRookMoved;
+        public int moveNumber;
+
+        public MoveState(char[,] board, GameObject[,] pieces)
+        {
+            boardState = new char[8, 8];
+            piecesState = new GameObject[8, 8];
+            System.Array.Copy(board, boardState, board.Length);
+            
+            // Deep copy of piece references
+            for (int i = 0; i < 8; i++)
+                for (int j = 0; j < 8; j++)
+                    piecesState[i, j] = pieces[i, j];
+
+            // Copy current game state
+            wasEnPassantPossible = enPassantPossible;
+            lastEnPassantCol = enPassantCol;
+            lastEnPassantRow = enPassantRow;
+            wasWhiteKingMoved = whiteKingMoved;
+            wasBlackKingMoved = blackKingMoved;
+            wasWhiteLeftRookMoved = whiteLeftRookMoved;
+            wasBlackLeftRookMoved = blackLeftRookMoved;
+            wasWhiteRightRookMoved = whiteRightRookMoved;
+            wasBlackRightRookMoved = blackRightRookMoved;
+            moveNumber = move;
+        }
+    }
+
+    private static Stack<MoveState> moveHistory = new Stack<MoveState>();
+
+    // Store the current state before making a move
+    public static void SaveState()
+    {
+        moveHistory.Push(new MoveState(chessBoard, pieceList));
+    }
+
+    private static bool CanCastle(int row, int col, int targetCol, char[,] board, bool isBlack)
+    {
+        // Can't castle while in check
+        if (IsInCheck(isBlack, board))
+        {
+            return false;
+        }
+
+        // Check squares the king passes through
+        int direction = targetCol > col ? 1 : -1;
+        char[,] tempBoard = new char[8, 8];
+
+        // Check each square the king moves through
+        for (int c = col; c != targetCol; c += direction)
+        {
+            Array.Copy(board, tempBoard, board.Length);
+            // Simulate king on this square
+            tempBoard[row, c + direction] = board[row, col];
+            tempBoard[row, col] = ' ';
+            
+            // If any square is under attack, castling is illegal
+            if (IsInCheck(isBlack, tempBoard))
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    public void Undo()
+    {
+        if (moveHistory.Count == 0)
+            return;
+
+        // Stop the bot's move coroutine if it's running
+        if (isBotThinking && botMoveCoroutine != null)
+        {
+            StopCoroutine(botMoveCoroutine);
+            botMoveCoroutine = null;
+            isBotThinking = false;
+            waitingForNextFrame = false;
+        }
+
+        // Get the previous state
+        MoveState previousState = moveHistory.Pop();
+
+        // Clear current trails
+        ClearMoveTrails();
+
+        RemoveAllPieces();
+
+        // Restore the board and pieces state
+        chessBoard = previousState.boardState;
+        pieceList = previousState.piecesState;
+
+        // Restore game state
+        enPassantPossible = previousState.wasEnPassantPossible;
+        enPassantCol = previousState.lastEnPassantCol;
+        enPassantRow = previousState.lastEnPassantRow;
+        whiteKingMoved = previousState.wasWhiteKingMoved;
+        blackKingMoved = previousState.wasBlackKingMoved;
+        whiteLeftRookMoved = previousState.wasWhiteLeftRookMoved;
+        blackLeftRookMoved = previousState.wasBlackLeftRookMoved;
+        whiteRightRookMoved = previousState.wasWhiteRightRookMoved;
+        blackRightRookMoved = previousState.wasBlackRightRookMoved;
+        move = previousState.moveNumber;
+
+        // Visual update
+        Refresh();
+        Debug.Log("Move undone");
+
+        // When undoing to before a checkmate/stalemate
+        if (gameOver)
+        {
+            gameOver = false;
+            winnerMessage = "";
+        }
+    }

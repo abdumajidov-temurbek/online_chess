@@ -9,7 +9,7 @@ export default function LandingPage() {
   const [open, setOpen] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerColor, setPlayerColor] = useState('white');
-  const [difficulty, setDifficulty] = useState('beginner');
+  const [difficulty, setDifficulty] = useState('pre-intermediate');
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,14 +50,14 @@ export default function LandingPage() {
           <span className="eyebrow">Instant Bot Match</span>
           <h1>Press play, choose your side, and start a real chess game immediately.</h1>
           <p>
-            This version strips away authentication and lobby noise. You land, enter your name, pick white or black,
-            and the game begins against a Stockfish-powered opponent running a full-strength Stockfish 17 build.
+            This version strips away authentication and lobby noise. You land, enter your name, choose white or black,
+            pick one of three local engines, and start the game.
           </p>
           <div className="hero-actions">
             <button type="button" className="primary-button" onClick={() => setOpen(true)}>
               Play
             </button>
-            <div className="pill-note">Stockfish 17 • Strong engine • Immediate start</div>
+            <div className="pill-note">stock-1 • stock-5 • stock-17</div>
           </div>
         </section>
 
@@ -114,36 +114,48 @@ export default function LandingPage() {
                   </button>
                 </div>
               </>
-            ) : (
+            ) : step === 2 ? (
               <>
                 <span className="eyebrow">Step 2</span>
                 <h2>Choose your side</h2>
-                <p>The bot takes the opposite color and moves immediately if you start as Black.</p>
+                <p>Choose White or Black. If you pick Black, the bot opens the game after a short think.</p>
                 <div className="color-grid">
                   <button
                     type="button"
                     className={`color-card ${playerColor === 'white' ? 'color-card-active' : ''}`}
-                    onClick={() => setPlayerColor('white')}
+                    onClick={() => {
+                      setPlayerColor('white');
+                      setStep(3);
+                    }}
                   >
-                    <strong>Play as White</strong>
+                    <strong>White</strong>
                     <span>You move first.</span>
                   </button>
                   <button
                     type="button"
                     className={`color-card ${playerColor === 'black' ? 'color-card-active' : ''}`}
-                    onClick={() => setPlayerColor('black')}
+                    onClick={() => {
+                      setPlayerColor('black');
+                      setStep(3);
+                    }}
                   >
-                    <strong>Play as Black</strong>
-                    <span>Bot opens instantly.</span>
+                    <strong>Black</strong>
+                    <span>Bot opens after a short delay.</span>
                   </button>
                 </div>
+                {error ? <p className="error-copy">{error}</p> : null}
+                <div className="dialog-actions">
+                  <button type="button" className="ghost-button" onClick={() => setStep(1)}>
+                    Back
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="eyebrow">Step 3</span>
+                <h2>Choose difficulty level</h2>
+                <p>Select one of the three local engines.</p>
                 <div className="difficulty-block">
-                  <div className="difficulty-header">
-                    <div>
-                      <strong>Bot difficulty</strong>
-                      <span>Friendly labels with tuned engine strength behind them.</span>
-                    </div>
-                  </div>
                   <div className="difficulty-grid">
                     {BOT_DIFFICULTIES.map((option) => (
                       <button
@@ -154,14 +166,14 @@ export default function LandingPage() {
                       >
                         <strong>{option.label}</strong>
                         <span>{option.description}</span>
-                        <small>Approx. {option.elo} Elo</small>
+                        <small>{option.value === 'pre-intermediate' ? 'stock-1' : option.value === 'intermediate' ? 'stock-5' : 'stock-17'}</small>
                       </button>
                     ))}
                   </div>
                 </div>
                 {error ? <p className="error-copy">{error}</p> : null}
                 <div className="dialog-actions">
-                  <button type="button" className="ghost-button" onClick={() => setStep(1)}>
+                  <button type="button" className="ghost-button" onClick={() => setStep(2)}>
                     Back
                   </button>
                   <button type="button" className="primary-button" onClick={handleCreateGame} disabled={loading}>

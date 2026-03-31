@@ -27,16 +27,20 @@ export default function BotSidebar({
   finished,
 }) {
   const rows = groupMoves(moves);
+  const avatarLabel = (botName || 'BOT')
+    .replace(/[^a-zA-Z0-9-]/g, '')
+    .slice(0, 3)
+    .toUpperCase();
 
   return (
     <aside className="bot-sidebar">
       <section className="sidebar-panel sidebar-hero">
         <span className="sidebar-eyebrow">Play Bots</span>
         <div className="bot-profile">
-          <div className="bot-avatar">SF</div>
+          <div className="bot-avatar">{avatarLabel}</div>
           <div>
             <h2>{botName}</h2>
-            <p>{difficultyLabel ? `${difficultyLabel} level tuned around ${difficultyElo} Elo.` : 'Adaptive rapid sparring partner.'}</p>
+            <p>{difficultyLabel ? `${difficultyLabel} level powered by ${botName}.` : 'Local chess bot.'}</p>
           </div>
         </div>
       </section>
@@ -44,7 +48,7 @@ export default function BotSidebar({
       <section className="sidebar-panel sidebar-status">
         <div className="status-block">
           <span className="sidebar-label">Difficulty</span>
-          <strong>{difficultyLabel ? `${difficultyLabel} · ${difficultyElo} Elo` : 'Beginner · 1000 Elo'}</strong>
+          <strong>{difficultyLabel ? `${difficultyLabel} · ${difficultyElo} Elo` : 'Local bot'}</strong>
         </div>
         <div className="status-block">
           <span className="sidebar-label">Opening</span>

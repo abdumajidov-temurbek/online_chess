@@ -7,8 +7,7 @@ from typing import Dict, List, Optional
 
 import chess
 import chess.pgn
-from stockfish_config import difficulty_profile, engine_parameters, resolve_stockfish_path, stockfish_display_name
-from uci_engine import UciEngine
+from bot_service import bot_service
 
 
 def status_text(board: chess.Board) -> str:
@@ -50,7 +49,7 @@ class GameSession:
     id: str
     player_name: str
     player_color: str
-    difficulty: str = "beginner"
+    difficulty: str = "pre-intermediate"
     board: chess.Board = field(default_factory=chess.Board)
     move_history: List[str] = field(default_factory=list)
     result: Optional[str] = None
@@ -63,48 +62,15 @@ class GameSession:
         return "black" if self.player_color == "white" else "white"
 
 
-class StockfishBot:
-    def __init__(self) -> None:
-        self._path = resolve_stockfish_path(os.getenv("STOCKFISH_PATH"))
-        self._move_time_ms = int(os.getenv("STOCKFISH_MOVE_TIME_MS", "250"))
-        self._engines: Dict[str, Optional[UciEngine]] = {}
-        self._lock = threading.RLock()
-
-    def _engine_for(self, difficulty: str) -> Optional[UciEngine]:
-        difficulty_key = difficulty_profile(difficulty)["key"]
-        with self._lock:
-            if difficulty_key in self._engines:
-                return self._engines[difficulty_key]
-            try:
-                engine = UciEngine(
-                    path=self._path,
-                    parameters=engine_parameters(difficulty_key),
-                    move_time_ms=self._move_time_ms,
-                )
-            except Exception:
-                engine = None
-            self._engines[difficulty_key] = engine
-            return engine
-
-    def choose_move(self, board: chess.Board, difficulty: str) -> str:
-        engine = self._engine_for(difficulty)
-        if engine:
-            move = engine.best_move(board, self._move_time_ms)
-            if move:
-                return move
-        return str(next(iter(board.legal_moves)))
-
-
 class GameManager:
     def __init__(self) -> None:
         self._games: Dict[str, GameSession] = {}
         self._lock = threading.RLock()
-        self._bot = StockfishBot()
 
-    def create_game(self, player_name: str, player_color: str, difficulty: str = "beginner") -> GameSession:
+    def create_game(self, player_name: str, player_color: str, difficulty: str = "pre-intermediate") -> GameSession:
         if player_color not in {"white", "black"}:
             raise ValueError("Player color must be white or black.")
-        difficulty_key = difficulty_profile(difficulty)["key"]
+        difficulty_key = bot_service.difficulty_profile(difficulty).key
         game = GameSession(
             id=uuid.uuid4().hex[:8],
             player_name=player_name.strip() or "Player",
@@ -198,7 +164,7 @@ class GameManager:
                 game.bot_thinking = False
                 return
 
-            bot_move = self._bot.choose_move(game.board, game.difficulty)
+            bot_move = bot_service.choose_move(game.board, game.difficulty)
             game.board.push(chess.Move.from_uci(bot_move))
             game.move_history.append(bot_move)
             game.bot_thinking = False
@@ -233,17 +199,17 @@ def to_move_list(board: chess.Board) -> List[Dict[str, str]]:
 
 
 def serialize_game(game: GameSession) -> Dict[str, object]:
-    difficulty = difficulty_profile(game.difficulty)
+    difficulty = bot_service.difficulty_profile(game.difficulty)
     turn = "white" if game.board.turn == chess.WHITE else "black"
     return {
         "id": game.id,
         "playerName": game.player_name,
         "playerColor": game.player_color,
-        "botName": stockfish_display_name(game.difficulty),
+        "botName": bot_service.display_name(game.difficulty),
         "botColor": game.bot_color,
-        "difficulty": difficulty["key"],
-        "difficultyLabel": difficulty["label"],
-        "difficultyElo": difficulty["elo"],
+        "difficulty": difficulty.key,
+        "difficultyLabel": difficulty.label,
+        "difficultyElo": difficulty.elo,
         "fen": game.board.fen(),
         "turn": turn,
         "statusText": status_text(game.board) if not game.reason == "resignation" else f"{game.player_name} resigned.",

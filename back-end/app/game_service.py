@@ -9,7 +9,7 @@ import chess.pgn
 from .database import get_db
 from .engine_service import engine_service
 from .security import to_iso, utc_now
-from stockfish_config import stockfish_display_name
+from bot_service import bot_service
 
 
 class GameError(Exception):
@@ -98,14 +98,15 @@ class GameManager:
                 return game_id
 
     def create_bot_game(self, user_id: int, name: str) -> Dict[str, Any]:
+        bot_name = bot_service.display_name("advance")
         game = ActiveGame(
             id=self._new_id(),
             mode="bot",
             white=Player(user_id=user_id, name=name),
-            black=Player(user_id=None, name=stockfish_display_name()),
+            black=Player(user_id=None, name=bot_name),
             status="ongoing",
             bot_side="black",
-            bot_name=stockfish_display_name(),
+            bot_name=bot_name,
         )
         self.games[game.id] = game
         return _game_to_dict(game)
@@ -184,7 +185,7 @@ class GameManager:
             return self._finalize_game(game)
 
         if game.mode == "bot" and game.bot_side == ("white" if game.board.turn == chess.WHITE else "black"):
-            bot_move = engine_service.best_move(game.board)
+            bot_move = engine_service.best_move(game.board, "advance")
             game.board.push(chess.Move.from_uci(bot_move))
             game.last_move = bot_move
             if self._is_finished(game):

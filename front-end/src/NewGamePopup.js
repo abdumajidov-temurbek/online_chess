@@ -71,11 +71,11 @@ function NewGamePopup() {
 							<Form.Field>
 								<Checkbox
 									radio
-									label='Stockfish 17'
+									label='stock-17'
 									name='checkboxRadioGroup'
-									value='stockfish'
-									checked={ai === 'stockfish'}
-									onChange={() => setAi('stockfish')}
+									value='stock-17'
+									checked={ai === 'stock-17'}
+									onChange={() => setAi('stock-17')}
 								/>
 							</Form.Field>
 							<Form.Field>

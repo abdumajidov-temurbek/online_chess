@@ -1,8 +1,7 @@
 export const BOT_DIFFICULTIES = [
-  { value: 'beginner', label: 'Beginner', elo: 1000, description: 'Calm pace for newer players.' },
-  { value: 'pre-intermediate', label: 'Pre-Intermediate', elo: 1500, description: 'Sharper tactics with manageable pressure.' },
-  { value: 'intermediate', label: 'Intermediate', elo: 2200, description: 'Strong positional play and reliable calculation.' },
-  { value: 'advanced', label: 'Advanced', elo: 3000, description: 'Near-maximum Stockfish strength.' },
+  { value: 'pre-intermediate', label: 'Pre-Intermediate', elo: 1200, description: 'Mapped to stock-1.' },
+  { value: 'intermediate', label: 'Intermediate', elo: 1800, description: 'Mapped to stock-5.' },
+  { value: 'advance', label: 'Advance', elo: 3000, description: 'Mapped to stock-17.' },
 ];
 
 export function difficultyByValue(value) {

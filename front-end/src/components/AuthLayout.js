@@ -18,8 +18,8 @@ export default function AuthLayout({ title, subtitle, footer, children }) {
           <p>{subtitle}</p>
           <div className="hero-stats">
             <div>
-              <strong>1500</strong>
-              <span>Stockfish target</span>
+              <strong>3</strong>
+              <span>Local engines</span>
             </div>
             <div>
               <strong>Live</strong>

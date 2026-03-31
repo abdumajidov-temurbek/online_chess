@@ -13,10 +13,8 @@ COPY back-end/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY back-end /app/back-end
-COPY fish17 /app/fish17
+COPY stockfish_bots /app/stockfish_bots
 
-RUN make -C /app/fish17/Stockfish/src -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
-
-ENV STOCKFISH_PATH=/app/fish17/Stockfish/src/stockfish
+RUN make -C /app/stockfish_bots/stock-17/Stockfish/src -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
 
 CMD ["gunicorn", "castle_backend.wsgi:application", "--bind", "0.0.0.0:5000"]
