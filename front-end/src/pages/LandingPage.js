@@ -28,6 +28,7 @@ export default function LandingPage() {
       const response = await api.post('/games', { playerName, playerColor, difficulty });
       history.push(`/game/${response.data.game.id}`);
     } catch (requestError) {
+      console.error(requestError.response?.data || requestError.message);
       setError(requestError.response?.data?.error || 'Unable to start a game.');
       setLoading(false);
     }

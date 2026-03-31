@@ -11,6 +11,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "replace-with-a-long-random-secret")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if host.strip()]
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
+FRONTEND_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("FRONTEND_ORIGINS", f"{FRONTEND_ORIGIN},http://127.0.0.1:3000").split(",")
+    if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
