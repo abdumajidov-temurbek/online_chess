@@ -33,7 +33,7 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt
 
-            cd ~/online_chess/fish17/Stockfish/src
+            cd ~/online_chess/stockfish_bots/stock-17/Stockfish/src
             make -j4 build ARCH=x86-64-sse41-popcnt || true
 
             sudo systemctl restart chess
