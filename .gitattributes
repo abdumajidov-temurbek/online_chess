@@ -1,0 +1,11 @@
+# Ignore AI engines
+stockfish_bots/** linguist-vendored
+stockfish-bots linguist-vendored
+
+# Ignore build artifacts
+front-end/build/** linguist-generated
+
+# Ignore environments
+back-end/venv/** linguist-vendored
+back-end/.venv/** linguist-vendored
+front-end/.venv/** linguist-vendored
