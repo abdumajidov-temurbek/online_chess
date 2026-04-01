@@ -37,4 +37,5 @@ jobs:
             make -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
 
             sudo systemctl restart chess
+            sleep 5
             curl -fsS http://127.0.0.1:5000/api/health >/dev/null
