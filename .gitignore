@@ -16,6 +16,11 @@ db.sqlite3
 node_modules/
 build/
 
+# Stockfish build output
+stockfish_bots/stock-17/Stockfish/src/*.o
+stockfish_bots/stock-17/Stockfish/src/.depend
+stockfish_bots/stock-17/Stockfish/src/stockfish
+
 # OS
 .DS_Store
 

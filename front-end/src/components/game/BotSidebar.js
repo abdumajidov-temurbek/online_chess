@@ -94,17 +94,8 @@ export default function BotSidebar({
         <button type="button" className="control-button" onClick={onNewGame}>
           New Game
         </button>
-        <button type="button" className="control-button" disabled>
-          Undo
-        </button>
-        <button type="button" className="control-button" disabled>
-          Hint
-        </button>
         <button type="button" className="control-button control-button-danger" onClick={onResign} disabled={busy || finished}>
           Resign
-        </button>
-        <button type="button" className="control-button" disabled>
-          Settings
         </button>
       </section>
     </aside>

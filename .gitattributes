@@ -1,11 +1,8 @@
-# Ignore AI engines
-stockfish_bots/** linguist-vendored
-stockfish-bots linguist-vendored
+# Embedded engine source trees
+stockfish_bots/stock-1/chess/** linguist-vendored
+stockfish_bots/stock-5/moonfish/** linguist-vendored
+stockfish_bots/stock-17/Stockfish/** linguist-vendored
+stockfish-bots/** linguist-vendored
 
 # Ignore build artifacts
 front-end/build/** linguist-generated
-
-# Ignore environments
-back-end/venv/** linguist-vendored
-back-end/.venv/** linguist-vendored
-front-end/.venv/** linguist-vendored

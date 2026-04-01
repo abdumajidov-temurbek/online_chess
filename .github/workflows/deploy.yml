@@ -20,10 +20,10 @@ jobs:
             set -e
 
             cd ~/online_chess
-            git pull origin main
+            git pull --ff-only origin main
 
             cd ~/online_chess/front-end
-            npm install
+            npm ci
             npm run build
             sudo rm -rf /var/www/chess/*
             sudo cp -r build/* /var/www/chess/
@@ -31,9 +31,10 @@ jobs:
 
             cd ~/online_chess/back-end
             source venv/bin/activate
-            pip install -r requirements.txt
+            python -m pip install -r requirements.txt
 
             cd ~/online_chess/stockfish_bots/stock-17/Stockfish/src
-            make -j4 build ARCH=x86-64-sse41-popcnt || true
+            make -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
 
             sudo systemctl restart chess
+            curl -fsS http://127.0.0.1:5000/api/health >/dev/null
