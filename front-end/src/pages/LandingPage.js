@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 
+import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 import { BOT_DIFFICULTIES } from '../lib/botDifficulty';
+import { ensureGuestSession, setGuestSessionId } from '../lib/guestStorage';
 
 export default function LandingPage() {
   const history = useHistory();
+  const location = useLocation();
+  const { exitGuestMode, isGuest, user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerColor, setPlayerColor] = useState('white');
@@ -13,6 +17,25 @@ export default function LandingPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && !playerName) {
+      setPlayerName(user.name || user.email.split('@')[0]);
+    }
+  }, [playerName, user]);
+
+  useEffect(() => {
+    if (isGuest && !playerName) {
+      setPlayerName('Guest');
+    }
+  }, [isGuest, playerName]);
+
+  useEffect(() => {
+    if (location.state?.openPlayDialog) {
+      setOpen(true);
+      history.replace({ ...location, state: {} });
+    }
+  }, [history, location]);
 
   const closeDialog = () => {
     setOpen(false);
@@ -25,7 +48,24 @@ export default function LandingPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await api.post('/games', { playerName, playerColor, difficulty });
+      const requestConfig = {};
+
+      if (isGuest) {
+        const guestSessionId = ensureGuestSession();
+        requestConfig.headers = {
+          'X-Guest-Session': guestSessionId,
+        };
+      }
+
+      const response = await api.post(
+        '/games',
+        { playerName, playerColor, difficulty, is_guest: isGuest },
+        requestConfig
+      );
+
+      if (isGuest && response.data.guest_session_id) {
+        setGuestSessionId(response.data.guest_session_id);
+      }
       history.push(`/game/${response.data.game.id}`);
     } catch (requestError) {
       console.error(requestError.response?.data || requestError.message);
@@ -41,8 +81,29 @@ export default function LandingPage() {
           <span className="brand-badge">C</span>
           <div>
             <strong>Castle Solo</strong>
-            <small>Clean chess against a ready bot</small>
+            <small>{isGuest ? 'Guest solo chess' : 'Authenticated solo chess'}</small>
           </div>
+        </div>
+        <div className="topbar-auth">
+          <div className="user-chip">
+            <strong>{isGuest ? 'Playing as Guest' : user?.name || 'Player'}</strong>
+            <span>{isGuest ? 'Guest session only' : user?.email}</span>
+          </div>
+          {isGuest ? (
+            <Link
+              to="/login"
+              className="ghost-button"
+              onClick={() => {
+                exitGuestMode();
+              }}
+            >
+              Sign in
+            </Link>
+          ) : (
+            <button type="button" className="ghost-button" onClick={logout}>
+              Logout
+            </button>
+          )}
         </div>
       </header>
 
@@ -51,8 +112,9 @@ export default function LandingPage() {
           <span className="eyebrow">Instant Bot Match</span>
           <h1>Press play, choose your side, and start a real chess game immediately.</h1>
           <p>
-            This version strips away authentication and lobby noise. You land, enter your name, choose white or black,
-            pick one of three local engines, and start the game.
+            {isGuest
+              ? 'You are in guest mode. This session is temporary and will not be attached to an account.'
+              : 'Sign in once, keep your identity attached to the session, choose white or black, pick a local engine, and start the game.'}
           </p>
           <div className="hero-actions">
             <button type="button" className="primary-button" onClick={() => setOpen(true)}>
@@ -71,7 +133,7 @@ export default function LandingPage() {
             </div>
             <div className="visual-caption">
               <strong>Focused solo flow</strong>
-              <span>No sign-up. No waiting room. Just chess.</span>
+              <span>{isGuest ? 'Guest games stay temporary.' : 'Your account unlocks the board immediately.'}</span>
             </div>
           </div>
         </section>
@@ -87,14 +149,14 @@ export default function LandingPage() {
               <>
                 <span className="eyebrow">Step 1</span>
                 <h2>What should we call you?</h2>
-                <p>Enter a player name before the board opens.</p>
+                <p>{isGuest ? 'Choose a temporary guest name for this session.' : 'Use your account name or customize how it appears inside the game.'}</p>
                 <label className="field">
                   <span>Player name</span>
                   <input
                     autoFocus
                     value={playerName}
                     onChange={(event) => setPlayerName(event.target.value)}
-                    placeholder="e.g. Temur"
+                    placeholder={isGuest ? 'e.g. Guest Temur' : 'e.g. Temur'}
                   />
                 </label>
                 {error ? <p className="error-copy">{error}</p> : null}

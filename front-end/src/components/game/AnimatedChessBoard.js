@@ -42,6 +42,10 @@ function pieceColor(piece) {
 }
 
 function findKingSquare(pieces, color) {
+  if (color !== 'white' && color !== 'black') {
+    return '';
+  }
+
   const targetPiece = color === 'white' ? 'wK' : 'bK';
   return Object.entries(pieces).find(([, piece]) => piece === targetPiece)?.[0] || '';
 }
@@ -187,8 +191,8 @@ export default function AnimatedChessBoard({
   selectedSquare,
   possibleMoves,
   lastMoveUci,
-  checkColor,
-  checkmateColor,
+  checkedKingColor,
+  checkmatedKingColor,
   disabled,
   onSquareClick,
   onMove,
@@ -199,8 +203,8 @@ export default function AnimatedChessBoard({
   const [dragState, setDragState] = useState(null);
   const [animationState, setAnimationState] = useState(null);
   const pieces = useMemo(() => parseFenPieces(fen), [fen]);
-  const checkSquare = useMemo(() => findKingSquare(pieces, checkColor), [pieces, checkColor]);
-  const checkmateSquare = useMemo(() => findKingSquare(pieces, checkmateColor), [pieces, checkmateColor]);
+  const checkSquare = useMemo(() => findKingSquare(pieces, checkedKingColor), [pieces, checkedKingColor]);
+  const checkmateSquare = useMemo(() => findKingSquare(pieces, checkmatedKingColor), [pieces, checkmatedKingColor]);
 
   useEffect(() => {
     if (previousFenRef.current === fen) {

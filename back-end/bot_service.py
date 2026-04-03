@@ -191,6 +191,7 @@ class BotService:
 
     def _resolve_stock17_binary(self, source_path: Path) -> Path:
         candidates = (
+            source_path / "stockfish",
             source_path / "Stockfish" / "src" / "stockfish",
             source_path / "Stockfish" / "src" / "stockfish-ubuntu-x86-64",
         )
@@ -198,7 +199,7 @@ class BotService:
             if candidate.exists():
                 return candidate.resolve()
         raise FileNotFoundError(
-            "stock-17 binary not found. Build stockfish_bots/stock-17/Stockfish/src/stockfish before running."
+            "stock-17 binary not found. Expected stockfish_bots/stock-17/stockfish."
         )
 
 

@@ -5,6 +5,7 @@ import { Link, useHistory, useParams } from 'react-router-dom';
 import AnimatedChessBoard from '../components/game/AnimatedChessBoard';
 import BotSidebar from '../components/game/BotSidebar';
 import PlayerCard from '../components/game/PlayerCard';
+import { useAuth } from '../context/AuthContext';
 import useChessSounds from '../hooks/useChessSounds';
 import api from '../lib/api';
 
@@ -39,6 +40,7 @@ function openingName(moves) {
 export default function GamePage() {
   const { gameId } = useParams();
   const history = useHistory();
+  const { exitGuestMode, isGuest, user, logout } = useAuth();
   const [game, setGame] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -195,18 +197,9 @@ export default function GamePage() {
   const playerActive = game.turn === game.playerColor && !game.isFinished;
   const botActive = game.turn === game.botColor && !game.isFinished;
   const statusMessage = game.botThinking ? 'Bot is thinking...' : outcomeLabel(game);
-  const checkmateColor =
-    game.isFinished && game.reason === 'checkmate'
-      ? game.winner === 'white'
-        ? 'black'
-        : game.winner === 'black'
-          ? 'white'
-          : ''
-      : '';
-  const checkColor =
-    !game.isFinished && game.inCheck
-      ? game.turn
-      : '';
+  const isCheckmate = game.isFinished && game.reason === 'checkmate';
+  const checkmatedKingColor = isCheckmate ? game.turn : '';
+  const checkedKingColor = !game.isFinished && game.inCheck ? game.turn : '';
 
   return (
     <div className="game-shell">
@@ -215,11 +208,30 @@ export default function GamePage() {
           <span className="brand-badge">C</span>
           <div>
             <strong>Castle Solo</strong>
-            <small>Premium bot arena</small>
+            <small>{game.isGuestGame ? 'Guest bot arena' : 'Premium bot arena'}</small>
           </div>
         </Link>
         <div className="topbar-status">
           <span className="status-pill">{statusMessage}</span>
+          <div className="user-chip">
+            <strong>{game.isGuestGame ? 'Playing as Guest' : user?.name || game.playerName}</strong>
+            <span>{game.isGuestGame ? 'Temporary game session' : user?.email}</span>
+          </div>
+          {game.isGuestGame || isGuest ? (
+            <Link
+              to="/login"
+              className="ghost-button"
+              onClick={() => {
+                exitGuestMode();
+              }}
+            >
+              Sign in
+            </Link>
+          ) : (
+            <button type="button" className="ghost-button" onClick={logout}>
+              Logout
+            </button>
+          )}
         </div>
       </header>
 
@@ -243,8 +255,8 @@ export default function GamePage() {
                 selectedSquare={selectedSquare}
                 possibleMoves={possibleMoves}
                 lastMoveUci={lastMove}
-                checkColor={checkColor}
-                checkmateColor={checkmateColor}
+                checkedKingColor={checkedKingColor}
+                checkmatedKingColor={checkmatedKingColor}
                 disabled={game.botThinking || busy || game.isFinished}
                 onSquareClick={handleSquareClick}
                 onMove={submitMove}
@@ -260,7 +272,7 @@ export default function GamePage() {
             label="You"
             name={game.playerName}
             rating={1240}
-            subtitle={`Playing as ${game.playerColor}`}
+            subtitle={game.isGuestGame ? `Playing as ${game.playerColor} • Guest` : `Playing as ${game.playerColor}`}
             active={playerActive}
             accent="human"
           />

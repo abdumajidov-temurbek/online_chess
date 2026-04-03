@@ -47,9 +47,12 @@ def result_payload(board: chess.Board) -> Dict[str, Optional[str]]:
 @dataclass
 class GameSession:
     id: str
+    owner_key: str
     player_name: str
     player_color: str
     difficulty: str = "pre-intermediate"
+    is_guest_game: bool = False
+    guest_session_id: Optional[str] = None
     board: chess.Board = field(default_factory=chess.Board)
     move_history: List[str] = field(default_factory=list)
     result: Optional[str] = None
@@ -67,15 +70,26 @@ class GameManager:
         self._games: Dict[str, GameSession] = {}
         self._lock = threading.RLock()
 
-    def create_game(self, player_name: str, player_color: str, difficulty: str = "pre-intermediate") -> GameSession:
+    def create_game(
+        self,
+        owner_key: str,
+        player_name: str,
+        player_color: str,
+        difficulty: str = "pre-intermediate",
+        is_guest_game: bool = False,
+        guest_session_id: Optional[str] = None,
+    ) -> GameSession:
         if player_color not in {"white", "black"}:
             raise ValueError("Player color must be white or black.")
         difficulty_key = bot_service.difficulty_profile(difficulty).key
         game = GameSession(
             id=uuid.uuid4().hex[:8],
+            owner_key=owner_key,
             player_name=player_name.strip() or "Player",
             player_color=player_color,
             difficulty=difficulty_key,
+            is_guest_game=is_guest_game,
+            guest_session_id=guest_session_id,
         )
         with self._lock:
             self._games[game.id] = game
@@ -83,16 +97,18 @@ class GameManager:
                 self._schedule_bot_move(game.id)
         return game
 
-    def get_game(self, game_id: str) -> GameSession:
+    def get_game(self, game_id: str, owner_key: str) -> GameSession:
         with self._lock:
             game = self._games.get(game_id)
             if not game:
                 raise KeyError("Game not found.")
+            if game.owner_key != owner_key:
+                raise PermissionError("You do not have access to this game.")
             return game
 
-    def restart_game(self, game_id: str) -> GameSession:
+    def restart_game(self, game_id: str, owner_key: str) -> GameSession:
         with self._lock:
-            game = self.get_game(game_id)
+            game = self.get_game(game_id, owner_key)
             game.board = chess.Board()
             game.move_history = []
             game.result = None
@@ -103,18 +119,18 @@ class GameManager:
                 self._schedule_bot_move(game.id)
             return game
 
-    def resign_game(self, game_id: str) -> GameSession:
+    def resign_game(self, game_id: str, owner_key: str) -> GameSession:
         with self._lock:
-            game = self.get_game(game_id)
+            game = self.get_game(game_id, owner_key)
             if not game.result:
                 game.result = "0-1" if game.player_color == "white" else "1-0"
                 game.reason = "resignation"
                 game.winner = game.bot_color
             return game
 
-    def make_move(self, game_id: str, move_uci: str) -> GameSession:
+    def make_move(self, game_id: str, owner_key: str, move_uci: str) -> GameSession:
         with self._lock:
-            game = self.get_game(game_id)
+            game = self.get_game(game_id, owner_key)
             if game.result:
                 return game
             if game.bot_thinking:
@@ -205,6 +221,7 @@ def serialize_game(game: GameSession) -> Dict[str, object]:
         "id": game.id,
         "playerName": game.player_name,
         "playerColor": game.player_color,
+        "isGuestGame": game.is_guest_game,
         "botName": bot_service.display_name(game.difficulty),
         "botColor": game.bot_color,
         "difficulty": difficulty.key,

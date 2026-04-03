@@ -1,5 +1,6 @@
 # Python
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -11,22 +12,33 @@ db.sqlite3
 
 # Environment
 .env
+.env.*
+*.env
 
 # Node
 node_modules/
 build/
-
-# Stockfish build output
-stockfish_bots/stock-17/Stockfish/src/*.o
-stockfish_bots/stock-17/Stockfish/src/.depend
-stockfish_bots/stock-17/Stockfish/src/stockfish
-
-# OS
-.DS_Store
+front-end/build/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-back-end/.venv/
-front-end/.venv/
+
+# OS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# ML / training (keraksiz katta fayllar)
+back-end/ml/
+*.ipynb
+*.zip
+
+# Stockfish (binary / katta)
+stockfish_bots/
+stockfish-bots/
+
+# Misc
+*.log

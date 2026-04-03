@@ -1,10 +1,10 @@
-from django.urls import path
-
+from django.urls import include, path
 from play import views
 
 
 urlpatterns = [
     path("api/health", views.health, name="health"),
+    path("api/auth/", include("accounts.urls")),
     path("api/games", views.create_game, name="create_game"),
     path("api/games/<str:game_id>", views.get_game, name="get_game"),
     path("api/games/<str:game_id>/move", views.make_move, name="make_move"),
