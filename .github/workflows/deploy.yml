@@ -34,7 +34,7 @@ jobs:
             python -m pip install -r requirements.txt
 
             cd ~/online_chess/stockfish_bots/stock-17/Stockfish/src
-            make -j"$(nproc)" build ARCH=x86-64-sse41-popcnt
+            make -j"$(nproc)" ARCH=x86-64-sse41-popcnt
 
             sudo systemctl restart chess
             sleep 5
