@@ -18,11 +18,13 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
+            GOOGLE_CLIENT_ID="877159184137-qh19rhpc2sjo5f464v8pl6i32aeajf34.apps.googleusercontent.com"
 
             cd ~/online_chess
             git pull --ff-only origin main
 
             cd ~/online_chess/front-end
+            printf 'REACT_APP_GOOGLE_CLIENT_ID=%s\n' "$GOOGLE_CLIENT_ID" > .env.production
             npm ci
             npm run build
             sudo rm -rf /var/www/chess/*
@@ -30,6 +32,15 @@ jobs:
             sudo systemctl reload nginx
 
             cd ~/online_chess/back-end
+            if [ -f .env ]; then
+              if grep -q '^GOOGLE_OAUTH_CLIENT_ID=' .env; then
+                sed -i "s|^GOOGLE_OAUTH_CLIENT_ID=.*|GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_CLIENT_ID|" .env
+              else
+                printf '\nGOOGLE_OAUTH_CLIENT_ID=%s\n' "$GOOGLE_CLIENT_ID" >> .env
+              fi
+            else
+              printf 'GOOGLE_OAUTH_CLIENT_ID=%s\n' "$GOOGLE_CLIENT_ID" > .env
+            fi
             source venv/bin/activate
             python -m pip install -r requirements.txt
 
